@@ -1,0 +1,115 @@
+var pars = [];
+var maxSpeed = 1.5;
+
+function setup() {
+    createCanvas(window.innerWidth, window.innerHeight);
+    
+    //reference of this method: https://www.youtube.com/watch?v=H-9jCNhLe-Q
+    let parsLength = Math.floor(window.innerWidth / 7);
+    //let parsLength = 180;
+    //set particles by for loop
+    for(var i = 0; i < parsLength; i++){
+        pars.push(new Particle());
+    }
+    
+    
+}
+
+function draw() {
+    
+    background(15, 90);
+    
+    //draw the particle function
+     //falied using same for loop to run the array
+    pars.forEach((P, index) =>{
+        P.update();
+        P.draw();
+        P.checkParticles(pars.slice(index));
+    });
+    
+
+}
+
+class Particle {
+    
+    constructor(){
+        //set the position for the particles with random within width and height
+        this.pos = createVector(random(width), random(height));
+        //set the size 
+        this.size = 14;
+        //set the velocity for the particles
+        this.velocity = createVector(random(-1.5, 1.5), random(-1.5, 1.5));
+        
+        
+     
+    }
+    
+    //update for make all the changes and movements visible by giving addtional velocity
+    update(){
+        
+        this.pos.add(this.velocity);
+        this.edge();
+        //limit the velocity and make particles move irregularly to different directions
+        this.velocity.x = constrain(this.velocity.x += random(-0.04, 0.04), -maxSpeed, maxSpeed);
+        this.velocity.y = constrain(this.velocity.y += random(-0.04, 0.04), -maxSpeed, maxSpeed);
+        
+       //set the color for changing(hue)
+        this.h = map(this.pos.x, 0, width, 100, 255);
+        
+        //set the mouse position force the particles away
+        //this method is reference from tutorials online
+        //links below:https://www.youtube.com/watch?v=nfCoPSsAfHo&t=384s
+        
+        this.mouseAngle = atan2(this.pos.y - mouseY * 0.8, this.pos.x - mouseX);
+        //mouse moving detection
+        this.mouseDis = dist(this.pos.x, this.pos.y, mouseX, mouseY);
+        this.mouseForce = constrain(map(this.mouseDis, 0, 60, 15, 0), 0, 10);
+        
+        //detect mouse position to make particles away from mouse.
+        //with trigonometry
+        if(this.mouseDis < 80){
+                
+                this.velocity.x += this.mouseForce * cos(this.mouseAngle) * 2;
+                this.velocity.y += this.mouseForce * sin(this.mouseAngle) * -0.5;
+            }
+    }
+    
+    //way to draw particles
+    draw() {
+        
+        noStroke();
+        fill(180, 90);
+        ellipse(this.pos.x, this.pos.y, this.size);
+        
+    }
+    
+    //to void edges
+    edge() {
+        if(this.pos.x < 3 || this.pos.x > width-5){
+            this.velocity.x *= -1;
+        };
+        
+        if(this.pos.y < 3 || this.pos.y > height-5){
+            this.velocity.y *= -1;
+        }
+    }
+    
+    //set the lines for connection between the particles
+    checkParticles(pars) {
+        pars.forEach(particle => {
+            //check the distance between particles to draw the lines
+            var parsDis = dist(this.pos.x, this.pos.y, particle.pos.x, particle.pos.y);
+            
+            if(parsDis < 90){
+                //set color and thickness of lines with map function
+                stroke(this.h, 190, map(parsDis, 30, 170, 255, 0));
+                strokeWeight(map(parsDis, 0, 100, 3, 0));
+                line(this.pos.x, this.pos.y, particle.pos.x, particle.pos.y);
+                
+            }
+            
+            
+        });
+    }
+}
+
